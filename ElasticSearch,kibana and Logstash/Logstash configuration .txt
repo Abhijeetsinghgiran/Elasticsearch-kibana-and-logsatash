@@ -1,0 +1,31 @@
+input {
+file {
+path => “/home/cathiemosh19/logstash-7.5.1/nycinfo.csv” start_position => “beginning”
+sincedb_path => “/dev/null”
+}
+}
+filter {
+csv {
+separator =>”,”
+columns => [“Unique Key”,”Created Date”,”Closed Date”,”Agency”,”Agency Name”,”Complaint Type”,”Descriptor”,”Location Type”,”Incident Zip”,”Incident Address”,”Street Name”,”Cross Street 1”,”Cross Street 2”,”Intersection Street 1”,”Intersection Street 2”,”Address Type”,”City”,”Landmark”,”Facility Type”,”Status”,”Due Date”,”Resolution Description”,”Resolution Action Updated Date”,”Community Board”,”BBL”,”Borough”,”X Coordinate (State Plane)”,”Y Coordinate (State Plane)”,”Open Data Channel Type”,”Park Facility Name”,”Park Borough”,”Vehicle Type”,”Taxi Company Borough”,”Taxi Pick Up Location”,”Bridge Highway Name”,”Bridge Highway Direction”,”Road Ramp”,”Bridge Highway Segment”,”Latitude”,”Longitude”,”Location”]
+}
+date{	match => [“Created Date”, “MM/dd/yyyy hh:mm:ss a”] target => “Created Date”
+}
+date{	match => [“Closed Date”, “MM/dd/yyyy hh:mm:ss a”] target => “Closed Date”
+}
+date{	match => [“Due Date”, “MM/dd/yyyy hh:mm:ss a”] target => “Due Date”
+}
+date{	match => [“Resolution Action Updated Date”, “MM/dd/yyyy hh:mm:ss a”] target => “Resoultion Action Updated Date”
+}
+mutate {convert => [“Incident Zip”,”integer”]} mutate {convert => [“BBL”,”integer”]}
+mutate {convert => [“X Coordinate (State Plane)”,”integer”]} mutate {convert => [“Y Coordinate (State Plane)”,”integer”]} mutate {convert => [“Latitude”,”float”]}
+mutate {convert => [“Longitude”,”float”]} mutate {copy =>
+{ “Longitude” => “[location][lon]” “Latitude” => “[location][lat]” }
+}
+mutate {replace => { “Location” => “%{Longitude},%{Latitude}” }}
+}
+output { elasticsearch {
+hosts => “localhost” index => “nycinfo”
+}
+stdout {codec => dots}
+}

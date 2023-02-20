@@ -1,0 +1,12 @@
+Geo-point template code:
+
+PUT _template/geotemplate
+{
+“index_patterns”:[“nycinfo”], “settings”:{},
+“mappings”:{ “properties”:{ “Location”:{
+“type”:”geo_point”
+}
+}
+},
+“aliases”: {}
+}
